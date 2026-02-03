@@ -1,12 +1,27 @@
 using Juan_AmparoAP1_P1.Components;
+using Microsoft.EntityFrameworkCore;
+using Juan_AmparoAP1_P1.DAL;
+using Juan_AmparoAP1_P1.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddBlazorBootstrap();
 
+
+
+var ConStr = builder.Configuration.GetConnectionString("ConStr");
+builder.Services.AddDbContext<Contexto>(options =>
+    options.UseSqlServer(ConStr));
+
+
+
+builder.Services.AddRazorComponents() .AddInteractiveServerComponents();
+builder.Services.AddScoped<ViajesEspacialesService>();
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
