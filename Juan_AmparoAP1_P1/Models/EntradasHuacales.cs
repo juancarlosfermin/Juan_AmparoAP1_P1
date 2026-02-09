@@ -5,15 +5,21 @@ namespace Juan_AmparoAP1_P1.Models
     public class EntradasHuacales
     {
         [Key]
-        public int ViajeId { get; set; }
-
-        [Required(ErrorMessage = "La descripción es obligatoria")]
-        public string? Descripcion { get; set; }
+        public int idEntrada{ get; set; }
 
         [Required(ErrorMessage = "La fecha es obligatoria")]
         public DateTime Fecha { get; set; } = DateTime.Now;
 
-        [Required(ErrorMessage = "El costo es obligatorio")]
-        public double Costo { get; set; }
+        [Required(ErrorMessage = "El Nombre del cliente debe ser obligatorio")]
+        public string? NombreCliente { get; set; }
+
+        [Required(ErrorMessage = "La Cantidad es obligatoria")]
+        public double Cantidad { get; set; }
+
+        [Required(ErrorMessage = "El Precio es Obligatorio")]
+        public double Precio { get; set; }
     }
 }
+
+
+
