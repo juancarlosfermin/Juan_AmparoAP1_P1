@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Juan_AmparoAP1_P1.DAL;
 namespace Juan_AmparoAP1_P1.Models 
 {
-    public class ViajesEspaciales
+    public class EntradasHuacales
     {
         [Key]
         public int ViajeId { get; set; }

@@ -1,7 +1,7 @@
 ﻿@page "/index"
 @using Juan_AmparoAP1_P1.Models
 @using Juan_AmparoAP1_P1.Services
-@inject ViajesEspacialesService viajeEspacialService
+@inject EntradasHuacalesServices viajeEspacialService
 @inject NavigationManager navigationManager
 @rendermode InteractiveServer
 
@@ -75,7 +75,7 @@
 </div>
 
 @code {
-    public List<ViajesEspaciales> lista { get; set; } = new List<ViajesEspaciales>();
+    public List<EntradasHuacales> lista { get; set; } = new List<EntradasHuacales>();
     public string filtro { get; set; } = "id";
     public string valorFiltro { get; set; } = "";
 

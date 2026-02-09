@@ -5,18 +5,18 @@ using System.Linq.Expressions;
 
 namespace Juan_AmparoAP1_P1.Services
 {
-    public class ViajesEspacialesService
+    public class EntradasHuacalesServices
     {
         private readonly Contexto _contexto;
 
-        public ViajesEspacialesService(Contexto contexto)
+        public EntradasHuacalesServices(Contexto contexto)
         {
             _contexto = contexto;
         }
 
-        public async Task<List<ViajesEspaciales>> Listar(Expression<Func<ViajesEspaciales, bool>> criterio)
+        public async Task<List<EntradasHuacales>> Listar(Expression<Func<EntradasHuacales, bool>> criterio)
         {
-            return await _contexto.ViajesEspaciales
+            return await _contexto.EntradasHuacales
                 .AsNoTracking()
                 .Where(criterio)
                 .ToListAsync();

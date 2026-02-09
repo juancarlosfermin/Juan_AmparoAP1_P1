@@ -19,7 +19,7 @@ builder.Services.AddDbContext<Contexto>(options =>
 
 
 builder.Services.AddRazorComponents() .AddInteractiveServerComponents();
-builder.Services.AddScoped<ViajesEspacialesService>();
+builder.Services.AddScoped<EntradasHuacalesServices>();
 var app = builder.Build();
 
 
