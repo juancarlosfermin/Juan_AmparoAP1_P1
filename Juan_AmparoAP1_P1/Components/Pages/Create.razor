@@ -1,5 +1,57 @@
-﻿<h3>Create</h3>
+﻿@page "/create"
+@using Juan_AmparoAP1_P1.Services
+@using Juan_AmparoAP1_P1.Models
+@inject EntradasHuacalesServices EntradasHuacalesServices
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
+
+<h3>Crear Entrada de Huacales</h3>
+
+<EditForm Model="entrada" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label>Fecha</label>
+        <InputDate class="form-control" @bind-Value="entrada.Fecha" />
+        <ValidationMessage For="@(() => entrada.Fecha)" />
+    </div>
+
+    <div class="mb-3">
+        <label>Nombre Del Cliente</label>
+        <InputText class="form-control" @bind-Value="entrada.NombreCliente" />
+        <ValidationMessage For="@(() => entrada.NombreCliente)" />
+    </div>
+
+    <div class="mb-3">
+        <label>Cantidad</label>
+        <InputNumber class="form-control" @bind-Value="entrada.Cantidad" />
+        <ValidationMessage For="@(() => entrada.Cantidad)" />
+    </div>
+
+    <div class="mb-3">
+        <label>Precio</label>
+        <InputNumber class="form-control" @bind-Value="entrada.Precio" />
+        <ValidationMessage For="@(() => entrada.Precio)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+    <a href="/index" class="btn btn-secondary">Volver</a>
+</EditForm>
 
 @code {
+    public EntradasHuacales entrada { get; set; } = new EntradasHuacales();
 
+    private async Task Guardar()
+    {
+        if (await EntradasHuacalesServices.Guardar(entrada))
+        {
+            // Toast.ShowSuccess("Guardado correctamente");
+            navigationManager.NavigateTo("/index");
+        }
+        else
+        {
+            // Toast.ShowError("Error al guardar");
+        }
+    }
 }
