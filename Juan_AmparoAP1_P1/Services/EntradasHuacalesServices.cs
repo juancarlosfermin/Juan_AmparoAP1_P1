@@ -15,6 +15,14 @@ namespace Juan_AmparoAP1_P1.Services
         }
 
 
+        public async Task<bool> Guardar(EntradasHuacales entrada)
+        {
+            if (entrada.idEntrada == 0)
+                return await Insertar(entrada);
+            else
+                return await Modificar(entrada);
+        }
+
         private async Task<bool> Insertar(EntradasHuacales entrada)
         {
             _contexto.EntradasHuacales.Add(entrada);
@@ -25,14 +33,6 @@ namespace Juan_AmparoAP1_P1.Services
         {
             _contexto.Update(entrada);
             return await _contexto.SaveChangesAsync() > 0;
-        }
-
-        public async Task<bool> Guardar(EntradasHuacales entrada)
-        {
-            if (entrada.idEntrada == 0)
-                return await Insertar(entrada);
-            else
-                return await Modificar(entrada);
         }
 
         public async Task<bool> Eliminar(int id)
