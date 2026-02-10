@@ -1,36 +1,52 @@
 ﻿@page "/index"
-@using Juan_AmparoAP1_P1.Models
 @using Juan_AmparoAP1_P1.Services
-@inject EntradasHuacalesServices viajeEspacialService
-@inject NavigationManager navigationManager
+@using Juan_AmparoAP1_P1.Models
+@inject EntradasHuacalesServices EntradasHuacalesServices
 @rendermode InteractiveServer
 
 <div class="card shadow-sm">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Registro de Viajes Espaciales</h5>
-        <a href="/viajesespaciales/create" class="btn btn-primary">
-            <i class="bi bi-rocket-takeoff"></i> Crear
+        <h5 class="mb-0">Consulta de Entradas Huacales</h5>
+        <a href="/create" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Crear
         </a>
     </div>
 
     <div class="card-body">
+
         <div class="row mb-3">
-            <div class="col-md-4">
-                <label class="form-label text-secondary">Filtrar por</label>
-                <select class="form-select" @bind="filtro">
-                    <option value="" selected disabled>Elija una opción</option>
-                    <option value="id">Viaje Id</option>
-                    <option value="descripcion">Descripción</option>
-                </select>
-            </div>
-            <div class="col-md-8">
-                <label class="form-label text-secondary">Búsqueda</label>
+            <div class="col-md-3">
+                <label>ID Entrada</label>
                 <div class="input-group">
-                    <input class="form-control" @bind="valorFiltro" placeholder="Buscar..." />
+                    <input type="number" class="form-control" @bind="filtroId" />
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label>Cliente</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" @bind="filtroCliente" />
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label>Desde</label>
+                <InputDate class="form-control" @bind-Value="filtroFechaDesde" />
+            </div>
+            <div class="col-md-3">
+                <label>Hasta</label>
+                <div class="input-group">
+                    <InputDate class="form-control" @bind-Value="filtroFechaHasta" />
                     <button class="btn btn-outline-primary" @onclick="Buscar">
-                        <i class="bi bi-search"></i> Buscar
+                        <i class="bi bi-search"></i>
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <div class="row mb-2 text-end">
+            <div class="col">
+                <button class="btn btn-outline-secondary btn-sm" @onclick="Restablecer">
+                    <i class="bi bi-arrow-clockwise"></i> Restablecer Filtros
+                </button>
             </div>
         </div>
 
@@ -38,69 +54,107 @@
             <table class="table table-hover align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th scope="col">ViajeId</th>
-                        <th scope="col">Descripción</th>
-                        <th scope="col">Fecha</th>
-                        <th scope="col">Costo</th>
-                        <th scope="col">Opciones</th>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Cantidad</th>
+                        <th>Precio</th>
+                        <th>Total</th>
+                        <th>Opciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in lista)
+                    @if (lista.Count == 0)
                     {
                         <tr>
-                            <td>@item.ViajeId</td>
-                            <td>@item.Descripcion</td>
-                            <td>@item.Fecha.ToShortDateString()</td>
-                            <td>@item.Costo.ToString("C2")</td>
-
-                            <td>
-                                <a href="/viajesespaciales/edit/@item.ViajeId" class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-pencil-square"></i>
-                                </a>
-                                <a href="/viajesespaciales/delete/@item.ViajeId" class="btn btn-outline-danger btn-sm">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-                            </td>
+                            <td colspan="7" class="text-center text-muted">No hay registros.</td>
                         </tr>
                     }
+                    else
+                    {
+                        @foreach (var item in lista)
+                        {
+                            <tr>
+                                <td>@item.idEntrada</td>
+                                <td>@item.Fecha.ToShortDateString()</td>
+                                <td>@item.NombreCliente</td>
+                                <td>@item.Cantidad</td>
+                                <td>@item.Precio.ToString("N2")</td>
+                                <td>@((item.Cantidad * item.Precio).ToString("N2"))</td>
+                                <td>
+                                    <a href="/edit/@item.idEntrada" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
                 </tbody>
+                <tfoot class="table-secondary">
+                    <tr class="fw-bold">
+                        <td colspan="3" class="text-end">RESUMEN:</td>
+                        <td>@lista.Sum(x => x.Cantidad)</td>
+                        <td></td>
+                        <td>RD$ @lista.Sum(x => x.Cantidad * x.Precio).ToString("N2")</td>
+                        <td>Conteo: @lista.Count</td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
-    </div>
-
-    <div class="card-footer text-muted">
-        Cantidad de Viajes: @lista.Count
     </div>
 </div>
 
 @code {
     public List<EntradasHuacales> lista { get; set; } = new List<EntradasHuacales>();
-    public string filtro { get; set; } = "id";
-    public string valorFiltro { get; set; } = "";
+    public List<EntradasHuacales> listaCompleta { get; set; } = new List<EntradasHuacales>();
+
+    public int? filtroId { get; set; }
+    public string filtroCliente { get; set; } = "";
+    public DateTime? filtroFechaDesde { get; set; }
+    public DateTime? filtroFechaHasta { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        lista = await viajeEspacialService.Listar(v => true);
+        listaCompleta = await EntradasHuacalesServices.ObtenerTodos();
+        lista = listaCompleta;
     }
 
-    private async Task Buscar()
+    private void Buscar()
     {
-        if (string.IsNullOrWhiteSpace(valorFiltro))
+        lista = listaCompleta;
+
+        if (filtroId.HasValue && filtroId.Value > 0)
         {
-            lista = await viajeEspacialService.Listar(v => true);
+            lista = lista.Where(e => e.idEntrada == filtroId.Value).ToList();
         }
-        else
+
+        if (!string.IsNullOrWhiteSpace(filtroCliente))
         {
-            if (filtro == "id" && int.TryParse(valorFiltro, out int id))
-            {
-                lista = await viajeEspacialService.Listar(v => v.ViajeId == id);
-            }
-            else if (filtro == "descripcion")
-            {
-                lista = await viajeEspacialService.Listar(v =>
-                    v.Descripcion.ToLower().Contains(valorFiltro.ToLower()));
-            }
+            lista = lista.Where(e => e.NombreCliente.ToLower().Contains(filtroCliente.ToLower())).ToList();
         }
+
+        if (filtroFechaDesde.HasValue)
+        {
+            lista = lista.Where(e => e.Fecha.Date >= filtroFechaDesde.Value.Date).ToList();
+        }
+
+        if (filtroFechaHasta.HasValue)
+        {
+            lista = lista.Where(e => e.Fecha.Date <= filtroFechaHasta.Value.Date).ToList();
+        }
+
+        if (lista.Count == 0)
+        {
+            // Toast.ShowWarning("No se encontraron coincidencias");
+        }
+    }
+
+    private void Restablecer()
+    {
+        filtroId = null;
+        filtroCliente = "";
+        filtroFechaDesde = null;
+        filtroFechaHasta = null;
+        lista = listaCompleta;
     }
 }

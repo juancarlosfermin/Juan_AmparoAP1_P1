@@ -9,6 +9,14 @@ public class Contexto : DbContext
 
     public DbSet<EntradasHuacales> EntradasHuacales { get; set; }
 
+
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<EntradasHuacales>().ToTable("EntradassHuacales");
+    }
+
 }
 
 
