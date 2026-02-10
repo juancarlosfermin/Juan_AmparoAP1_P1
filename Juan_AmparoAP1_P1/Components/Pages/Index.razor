@@ -92,11 +92,8 @@
                 </tbody>
                 <tfoot class="table-secondary">
                     <tr class="fw-bold">
-                        <td colspan="3" class="text-end">RESUMEN:</td>
-                        <td>@lista.Sum(x => x.Cantidad)</td>
-                        <td></td>
-                        <td>RD$ @lista.Sum(x => x.Cantidad * x.Precio).ToString("N2")</td>
-                        <td>Conteo: @lista.Count</td>
+                      
+                        <td>tOTAL: @lista.Count</td>
                     </tr>
                 </tfoot>
             </table>
