@@ -59,6 +59,7 @@
                         <th>Cliente</th>
                         <th>Cantidad</th>
                         <th>Precio</th>
+                        <th>Total</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -78,6 +79,7 @@
                                 <td>@item.NombreCliente</td>
                                 <td>@item.Cantidad</td>
                                 <td>@item.Precio.ToString("N2")</td>
+                                <td>@((item.Cantidad * item.Precio).ToString("N2"))</td>
                                 <td>
                                     <a href="/edit/@item.idEntrada" class="btn btn-outline-primary btn-sm">
                                         <i class="bi bi-pencil"></i> Editar
@@ -89,8 +91,9 @@
                 </tbody>
                 <tfoot class="table-secondary">
                     <tr class="fw-bold">
-                      
-                        <td>tOTAL: @lista.Count</td>
+
+                        <td>Conteo: @lista.Count</td>
+
                     </tr>
                 </tfoot>
             </table>
