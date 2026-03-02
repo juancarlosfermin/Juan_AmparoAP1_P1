@@ -5,7 +5,7 @@
 @inject NavigationManager navigationManager
 @rendermode InteractiveServer
 
-<h3>Entrada de huacales edit </h3>
+<h3>Entrada de huacales edit</h3>
 
 @if (entrada != null)
 {
@@ -13,28 +13,76 @@
         <DataAnnotationsValidator />
         <ValidationSummary />
 
-        <div class="mb-3">
-            <label>Fecha</label>
-            <InputDate class="form-control" @bind-Value="entrada.Fecha" />
-            <ValidationMessage For="@(() => entrada.Fecha)" />
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Fecha</label>
+                        <InputDate class="form-control" @bind-Value="entrada.Fecha" />
+                        <ValidationMessage For="@(() => entrada.Fecha)" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>Nombre Del Cliente</label>
+                        <InputText class="form-control" @bind-Value="entrada.NombreCliente" />
+                        <ValidationMessage For="@(() => entrada.NombreCliente)" />
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="mb-3">
-            <label>Nombre Del Cliente</label>
-            <InputText class="form-control" @bind-Value="entrada.NombreCliente" />
-            <ValidationMessage For="@(() => entrada.NombreCliente)" />
-        </div>
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5>Detalles de Huacales</h5>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-end">
+                    <div class="col-md-4 mb-3">
+                        <label>Tipo de Huacal</label>
+                        <InputSelect class="form-select" @bind-Value="nuevoDetalle.TipoId">
+                            <option value="0">Seleccione un tipo...</option>
+                            <option value="1">Huacales Rojos</option>
+                            <option value="2">Huacales Verdes</option>
+                        </InputSelect>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label>Cantidad</label>
+                        <InputNumber class="form-control" @bind-Value="nuevoDetalle.Cantidad" />
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label>Precio</label>
+                        <InputNumber class="form-control" @bind-Value="nuevoDetalle.Precio" />
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <button type="button" class="btn btn-primary" @onclick="AgregarDetalle">Agregar</button>
 
-        <div class="mb-3">
-            <label>Cantidad</label>
-            <InputNumber class="form-control" @bind-Value="entrada.Cantidad" />
-            <ValidationMessage For="@(() => entrada.Cantidad)" />
-        </div>
+                    </div>
+                </div>
 
-        <div class="mb-3">
-            <label>Precio</label>
-            <InputNumber class="form-control" @bind-Value="entrada.Precio" />
-            <ValidationMessage For="@(() => entrada.Precio)" />
+                <table class="table table-bordered mt-3">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Cantidad</th>
+                            <th>Precio</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var detalle in entrada.EntradasDetalle)
+                        {
+                            <tr>
+                                <td>@(detalle.TipoId == 1 ? "Huacales Rojos" : "Huacales Verdes")</td>
+                                <td>@detalle.Cantidad</td>
+                                <td>@detalle.Precio</td>
+                                <td>
+                                    <button type="button" class="btn btn-danger btn-sm" @onclick="(() => RemoverDetalle(detalle))">Remover</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="d-flex gap-2">
@@ -53,6 +101,7 @@ else
     [Parameter]
     public int IdEntrada { get; set; }
     public EntradasHuacales? entrada { get; set; }
+    public EntradasHuacalesDetalle nuevoDetalle { get; set; } = new EntradasHuacalesDetalle();
 
     protected override async Task OnInitializedAsync()
     {
@@ -64,16 +113,37 @@ else
         }
     }
 
+    private void AgregarDetalle()
+    {
+        if (nuevoDetalle.TipoId > 0 && nuevoDetalle.Cantidad > 0 && nuevoDetalle.Precio > 0)
+        {
+            entrada!.EntradasDetalle.Add(nuevoDetalle);
+            nuevoDetalle = new EntradasHuacalesDetalle();
+        }
+    }
+
+    private void RemoverDetalle(EntradasHuacalesDetalle detalle)
+    {
+        nuevoDetalle.TipoId = detalle.TipoId;
+        nuevoDetalle.Cantidad = detalle.Cantidad;
+        nuevoDetalle.Precio = detalle.Precio;
+
+        entrada.EntradasDetalle.Remove(detalle);
+    }   
+
     private async Task Guardar()
     {
-        if (await EntradasHuacalesServices.Guardar(entrada!))
+        if (entrada!.EntradasDetalle.Any())
         {
-            // Toast.ShowSuccess("Actualizado correctamente");
-            navigationManager.NavigateTo("/index");
-        }
-        else
-        {
-            // Toast.ShowError("No se pudo actualizar");
+            if (await EntradasHuacalesServices.Guardar(entrada))
+            {
+                // Toast.ShowSuccess("Actualizado correctamente");
+                navigationManager.NavigateTo("/index");
+            }
+            else
+            {
+                // Toast.ShowError("No se pudo actualizar");
+            }
         }
     }
 
