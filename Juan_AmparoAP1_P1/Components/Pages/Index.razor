@@ -14,29 +14,30 @@
     </div>
 
     <div class="card-body">
-        <div class="row mb-3">
+        <div class="row mb-3 align-items-end">
             <div class="col-md-3">
-                <label>ID Entrada</label>
+                <label>Filtrar por:</label>
+                <select class="form-select" @bind="filtroSeleccionado">
+                    <option value="ID">ID Entrada</option>
+                    <option value="Cliente">Cliente</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label>Búsqueda:</label>
                 <div class="input-group">
-                    <input type="number" class="form-control" @bind="filtroId" />
+                    <input type="text" class="form-control" placeholder="Escribe aquí..." @bind="valorFiltro" />
                 </div>
             </div>
             <div class="col-md-3">
-                <label>Cliente</label>
-                <div class="input-group">
-                    <input type="text" class="form-control" @bind="filtroCliente" />
-                </div>
-            </div>
-            <div class="col-md-3">
-                <label>Desde</label>
+                <label>Desde:</label>
                 <InputDate class="form-control" @bind-Value="filtroFechaDesde" />
             </div>
             <div class="col-md-3">
-                <label>Hasta</label>
+                <label>Hasta:</label>
                 <div class="input-group">
                     <InputDate class="form-control" @bind-Value="filtroFechaHasta" />
                     <button class="btn btn-outline-primary" @onclick="Buscar">
-                        <i class="bi bi-search"></i>
+                        <i class="bi bi-search"></i> Buscar
                     </button>
                 </div>
             </div>
@@ -55,10 +56,11 @@
                 <PropertyColumn Property="@(e => e.idEntrada)" Title="ID" Sortable="true" />
                 <PropertyColumn Property="@(e => e.Fecha)" Title="Fecha" Format="dd/MM/yyyy" Sortable="true" />
                 <PropertyColumn Property="@(e => e.NombreCliente)" Title="Cliente" Sortable="true" />
-                <PropertyColumn Property="@(e => e.Cantidad)" Title="Cantidad" Sortable="true" />
-                <PropertyColumn Property="@(e => e.Precio)" Title="Precio" Format="N2" Sortable="true" />
-                <TemplateColumn Title="Total">
-                    @((context.Cantidad * context.Precio).ToString("N2"))
+                <TemplateColumn Title="Total Huacales">
+                    @context.EntradasDetalle.Sum(d => d.Cantidad)
+                </TemplateColumn>
+                <TemplateColumn Title="Monto Total">
+                    @context.EntradasDetalle.Sum(d => d.Cantidad * d.Precio).ToString("N2")
                 </TemplateColumn>
                 <TemplateColumn Title="Acciones">
                     <a href="/edit/@context.idEntrada" class="btn btn-outline-primary btn-sm">
@@ -80,8 +82,9 @@
     public List<EntradasHuacales> lista { get; set; } = new List<EntradasHuacales>();
     public List<EntradasHuacales> listaCompleta { get; set; } = new List<EntradasHuacales>();
 
-    public int? filtroId { get; set; }
-    public string filtroCliente { get; set; } = "";
+    public string filtroSeleccionado { get; set; } = "ID";
+    public string valorFiltro { get; set; } = "";
+    
     public DateTime? filtroFechaDesde { get; set; }
     public DateTime? filtroFechaHasta { get; set; }
 
@@ -90,20 +93,26 @@
     protected override async Task OnInitializedAsync()
     {
         listaCompleta = await EntradasHuacalesServices.ObtenerTodos();
-        lista = listaCompleta;
+        lista = listaCompleta.ToList();
     }
 
     private void Buscar()
     {
-        lista = listaCompleta;
-        if (filtroId.HasValue && filtroId.Value > 0)
-        {
-            lista = lista.Where(e => e.idEntrada == filtroId.Value).ToList();
-        }
+        lista = listaCompleta.ToList();
 
-        if (!string.IsNullOrWhiteSpace(filtroCliente))
+        if (!string.IsNullOrWhiteSpace(valorFiltro))
         {
-            lista = lista.Where(e => e.NombreCliente.ToLower().Contains(filtroCliente.ToLower())).ToList();
+            if (filtroSeleccionado == "ID")
+            {
+                if (int.TryParse(valorFiltro, out int idBuscado))
+                {
+                    lista = lista.Where(e => e.idEntrada == idBuscado).ToList();
+                }
+            }
+            else if (filtroSeleccionado == "Cliente")
+            {
+                lista = lista.Where(e => e.NombreCliente != null && e.NombreCliente.ToLower().Contains(valorFiltro.ToLower())).ToList();
+            }
         }
 
         if (filtroFechaDesde.HasValue)
@@ -124,10 +133,10 @@
 
     private void Restablecer()
     {
-        filtroId = null;
-        filtroCliente = "";
+        filtroSeleccionado = "ID";
+        valorFiltro = "";
         filtroFechaDesde = null;
         filtroFechaHasta = null;
-        lista = listaCompleta;
+        lista = listaCompleta.ToList();
     }
 }
