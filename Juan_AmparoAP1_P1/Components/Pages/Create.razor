@@ -11,28 +11,87 @@
     <DataAnnotationsValidator />
     <ValidationSummary />
 
-    <div class="mb-3">
-        <label>Fecha</label>
-        <InputDate class="form-control" @bind-Value="entrada.Fecha" />
-        <ValidationMessage For="@(() => entrada.Fecha)" />
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>Fecha</label>
+                    <InputDate class="form-control" @bind-Value="entrada.Fecha" />
+                    <ValidationMessage For="@(() => entrada.Fecha)" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>Nombre Del Cliente</label>
+                    <InputText class="form-control" @bind-Value="entrada.NombreCliente" />
+                    <ValidationMessage For="@(() => entrada.NombreCliente)" />
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="mb-3">
-        <label>Nombre Del Cliente</label>
-        <InputText class="form-control" @bind-Value="entrada.NombreCliente" />
-        <ValidationMessage For="@(() => entrada.NombreCliente)" />
-    </div>
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5>Detalles de Huacales</h5>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-start">
+                <div class="col-md-4 mb-3">
+                    <label>Tipo de Huacal</label>
+                    <InputSelect class="form-select" @bind-Value="nuevoDetalle.TipoId">
+                        <option value="0">Seleccione un tipo...</option>
+                        <option value="1">Huacales Rojos</option>
+                        <option value="2">Huacales Verdes</option>
+                    </InputSelect>
+                    @if (mostrarErrorDetalle && nuevoDetalle.TipoId == 0)
+                    {
+                        <span class="text-danger" style="font-size: 0.875em;">El tipo de huacal es obligatorio</span>
+                    }
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label>Cantidad</label>
+                    <InputNumber class="form-control" @bind-Value="nuevoDetalle.Cantidad" min="1" />
+                    @if (mostrarErrorDetalle && nuevoDetalle.Cantidad <= 0)
+                    {
+                        <span class="text-danger" style="font-size: 0.875em;">La cantidad debe ser mayor a 0</span>
+                    }
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label>Precio</label>
+                    <InputNumber class="form-control" @bind-Value="nuevoDetalle.Precio" min="1" />
+                    @if (mostrarErrorDetalle && nuevoDetalle.Precio <= 0)
+                    {
+                        <span class="text-danger" style="font-size: 0.875em;">El precio debe ser mayor a 0</span>
+                    }
+                </div>
+                <div class="col-md-2 mb-3 mt-4">
+                    <button type="button" class="btn btn-primary" @onclick="AgregarDetalle">Agregar</button>
+                </div>
+            </div>
 
-    <div class="mb-3">
-        <label>Cantidad</label>
-        <InputNumber class="form-control" @bind-Value="entrada.Cantidad" />
-        <ValidationMessage For="@(() => entrada.Cantidad)" />
-    </div>
-
-    <div class="mb-3">
-        <label>Precio</label>
-        <InputNumber class="form-control" @bind-Value="entrada.Precio" />
-        <ValidationMessage For="@(() => entrada.Precio)" />
+            <table class="table table-bordered mt-3">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Precio</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var detalle in entrada.EntradasDetalle)
+                    {
+                        <tr>
+                            <td>@(detalle.TipoId == 1 ? "Huacales Rojos" : "Huacales Verdes")</td>
+                            <td>@detalle.Cantidad</td>
+                            <td>@detalle.Precio</td>
+                            <td>
+                                <button type="button" class="btn btn-danger btn-sm" @onclick="(() => RemoverDetalle(detalle))">Remover</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <button type="submit" class="btn btn-primary">Guardar</button>
@@ -41,17 +100,45 @@
 
 @code {
     public EntradasHuacales entrada { get; set; } = new EntradasHuacales();
+    public EntradasHuacalesDetalle nuevoDetalle { get; set; } = new EntradasHuacalesDetalle();
+    public bool mostrarErrorDetalle { get; set; } = false;
 
-    private async Task Guardar()
+    private void AgregarDetalle()
     {
-        if (await EntradasHuacalesServices.Guardar(entrada))
+        if (nuevoDetalle.TipoId > 0 && nuevoDetalle.Cantidad > 0 && nuevoDetalle.Precio > 0)
         {
-            // Toast.ShowSuccess("Guardado correctamente");
-            navigationManager.NavigateTo("/index");
+            entrada.EntradasDetalle.Add(nuevoDetalle);
+            nuevoDetalle = new EntradasHuacalesDetalle();
+            mostrarErrorDetalle = false;
         }
         else
         {
-            // Toast.ShowError("Error al guardar");
+            mostrarErrorDetalle = true;
+        }
+    }
+
+    private void RemoverDetalle(EntradasHuacalesDetalle detalle)
+    {
+        nuevoDetalle.TipoId = detalle.TipoId;
+        nuevoDetalle.Cantidad = detalle.Cantidad;
+        nuevoDetalle.Precio = detalle.Precio;
+
+        entrada.EntradasDetalle.Remove(detalle);
+    }
+
+    private async Task Guardar()
+    {
+        if (entrada.EntradasDetalle.Any())
+        {
+            if (await EntradasHuacalesServices.Guardar(entrada))
+            {
+                // Toast.ShowSuccess("Guardado correctamente");
+                navigationManager.NavigateTo("/index");
+            }
+            else
+            {
+                // Toast.ShowError("Error al guardar");
+            }
         }
     }
 }

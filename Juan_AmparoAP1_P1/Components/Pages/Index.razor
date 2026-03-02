@@ -1,6 +1,7 @@
 ﻿@page "/index"
 @using Juan_AmparoAP1_P1.Services
 @using Juan_AmparoAP1_P1.Models
+@using Microsoft.AspNetCore.Components.QuickGrid
 @inject EntradasHuacalesServices EntradasHuacalesServices
 @rendermode InteractiveServer
 
@@ -13,30 +14,30 @@
     </div>
 
     <div class="card-body">
-
-        <div class="row mb-3">
+        <div class="row mb-3 align-items-end">
             <div class="col-md-3">
-                <label>ID Entrada</label>
+                <label>Filtrar por:</label>
+                <select class="form-select" @bind="filtroSeleccionado">
+                    <option value="ID">ID Entrada</option>
+                    <option value="Cliente">Cliente</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label>Búsqueda:</label>
                 <div class="input-group">
-                    <input type="number" class="form-control" @bind="filtroId" />
+                    <input type="text" class="form-control" placeholder="Escribe aquí..." @bind="valorFiltro" />
                 </div>
             </div>
             <div class="col-md-3">
-                <label>Cliente</label>
-                <div class="input-group">
-                    <input type="text" class="form-control" @bind="filtroCliente" />
-                </div>
-            </div>
-            <div class="col-md-3">
-                <label>Desde</label>
+                <label>Desde:</label>
                 <InputDate class="form-control" @bind-Value="filtroFechaDesde" />
             </div>
             <div class="col-md-3">
-                <label>Hasta</label>
+                <label>Hasta:</label>
                 <div class="input-group">
                     <InputDate class="form-control" @bind-Value="filtroFechaHasta" />
                     <button class="btn btn-outline-primary" @onclick="Buscar">
-                        <i class="bi bi-search"></i>
+                        <i class="bi bi-search"></i> Buscar
                     </button>
                 </div>
             </div>
@@ -51,50 +52,28 @@
         </div>
 
         <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Fecha</th>
-                        <th>Cliente</th>
-                        <th>Cantidad</th>
-                        <th>Precio</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (lista.Count == 0)
-                    {
-                        <tr>
-                            <td colspan="7" class="text-center text-muted">No hay registros.</td>
-                        </tr>
-                    }
-                    else
-                    {
-                        @foreach (var item in lista)
-                        {
-                            <tr>
-                                <td>@item.idEntrada</td>
-                                <td>@item.Fecha.ToShortDateString()</td>
-                                <td>@item.NombreCliente</td>
-                                <td>@item.Cantidad</td>
-                                <td>@item.Precio.ToString("N2")</td>
-                                <td>@((item.Cantidad * item.Precio).ToString("N2"))</td>
-                                <td>
-                                    <a href="/edit/@item.idEntrada" class="btn btn-outline-primary btn-sm">
-                                        <i class="bi bi-pencil"></i> Editar
-                                    </a>
-                                </td>
-                            </tr>
-                        }
-                    }
-                </tbody>
-                <tfoot class="table-secondary">
-                    <tr class="fw-bold">
-                      
-                        <td>tOTAL: @lista.Count</td>
-                    </tr>
-                </tfoot>
-            </table>
+            <QuickGrid Items="@lista.AsQueryable()" Pagination="@pagination" Class="table table-hover align-middle">
+                <PropertyColumn Property="@(e => e.idEntrada)" Title="ID" Sortable="true" />
+                <PropertyColumn Property="@(e => e.Fecha)" Title="Fecha" Format="dd/MM/yyyy" Sortable="true" />
+                <PropertyColumn Property="@(e => e.NombreCliente)" Title="Cliente" Sortable="true" />
+                <TemplateColumn Title="Total Huacales">
+                    @context.EntradasDetalle.Sum(d => d.Cantidad)
+                </TemplateColumn>
+                <TemplateColumn Title="Monto Total">
+                    @context.EntradasDetalle.Sum(d => d.Cantidad * d.Precio).ToString("N2")
+                </TemplateColumn>
+                <TemplateColumn Title="Acciones">
+                    <a href="/edit/@context.idEntrada" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                </TemplateColumn>
+            </QuickGrid>
+        </div>
+        <div class="card-footer">
+            <Paginator State="@pagination" />
+            <div class="mt-2 text-muted">
+                Conteo: @lista.Count
+            </div>
         </div>
     </div>
 </div>
@@ -103,29 +82,37 @@
     public List<EntradasHuacales> lista { get; set; } = new List<EntradasHuacales>();
     public List<EntradasHuacales> listaCompleta { get; set; } = new List<EntradasHuacales>();
 
-    public int? filtroId { get; set; }
-    public string filtroCliente { get; set; } = "";
+    public string filtroSeleccionado { get; set; } = "ID";
+    public string valorFiltro { get; set; } = "";
+    
     public DateTime? filtroFechaDesde { get; set; }
     public DateTime? filtroFechaHasta { get; set; }
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 4 };
 
     protected override async Task OnInitializedAsync()
     {
         listaCompleta = await EntradasHuacalesServices.ObtenerTodos();
-        lista = listaCompleta;
+        lista = listaCompleta.ToList();
     }
 
     private void Buscar()
     {
-        lista = listaCompleta;
+        lista = listaCompleta.ToList();
 
-        if (filtroId.HasValue && filtroId.Value > 0)
+        if (!string.IsNullOrWhiteSpace(valorFiltro))
         {
-            lista = lista.Where(e => e.idEntrada == filtroId.Value).ToList();
-        }
-
-        if (!string.IsNullOrWhiteSpace(filtroCliente))
-        {
-            lista = lista.Where(e => e.NombreCliente.ToLower().Contains(filtroCliente.ToLower())).ToList();
+            if (filtroSeleccionado == "ID")
+            {
+                if (int.TryParse(valorFiltro, out int idBuscado))
+                {
+                    lista = lista.Where(e => e.idEntrada == idBuscado).ToList();
+                }
+            }
+            else if (filtroSeleccionado == "Cliente")
+            {
+                lista = lista.Where(e => e.NombreCliente != null && e.NombreCliente.ToLower().Contains(valorFiltro.ToLower())).ToList();
+            }
         }
 
         if (filtroFechaDesde.HasValue)
@@ -146,10 +133,10 @@
 
     private void Restablecer()
     {
-        filtroId = null;
-        filtroCliente = "";
+        filtroSeleccionado = "ID";
+        valorFiltro = "";
         filtroFechaDesde = null;
         filtroFechaHasta = null;
-        lista = listaCompleta;
+        lista = listaCompleta.ToList();
     }
 }
