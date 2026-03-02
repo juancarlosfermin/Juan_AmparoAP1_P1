@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using Juan_AmparoAP1_P1.DAL;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Juan_AmparoAP1_P1.Models
 {
     public class EntradasHuacales
@@ -13,10 +14,7 @@ namespace Juan_AmparoAP1_P1.Models
         [Required(ErrorMessage = "El Nombre del cliente debe ser obligatorio")]
         public string? NombreCliente { get; set; }
 
-        [Required(ErrorMessage = "La Cantidad es obligatoria")]
-        public int Cantidad { get; set; }
-
-        [Required(ErrorMessage = "El Precio es Obligatorio")]
-        public int Precio { get; set; }
+        [ForeignKey("EntradaId")]
+        public ICollection<EntradasHuacalesDetalle> EntradasDetalle { get; set; } = new List<EntradasHuacalesDetalle>();
     }
 }
